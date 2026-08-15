@@ -4,14 +4,36 @@
         <div class="bg-blue-600 p-2 rounded-lg mr-3">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
         </div>
-        <h1 class="text-2xl font-bold text-slate-800">Reporte de Sato Inventario App</h1>
+        <h1 class="text-2xl font-bold text-slate-800">Panel de Control Analítico</h1>
+    </div>
+
+    <!-- SECCIÓN DE MÉTRICAS (KPIs) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 border-l-4 border-l-blue-500">
+            <div class="text-xs font-bold text-gray-500 uppercase mb-1">Procesos Abiertos</div>
+            <div class="text-3xl font-bold text-gray-800">{{ $inventariosActivos }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 border-l-4 border-l-indigo-500">
+            <div class="text-xs font-bold text-gray-500 uppercase mb-1">Sucursales en Auditoría</div>
+            <div class="text-3xl font-bold text-gray-800">{{ $localesEnProceso }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 border-l-4 border-l-emerald-500">
+            <div class="text-xs font-bold text-gray-500 uppercase mb-1">Última Sincronización</div>
+            <div class="text-3xl font-bold text-gray-800">
+                @if($ultimaSincronizacion)
+                    {{ \Carbon\Carbon::parse($ultimaSincronizacion)->format('H:i') }}
+                @else
+                    --:--
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Tarjeta de Filtros -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="bg-blue-600 text-white px-4 py-3 rounded-t-lg flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            <span class="font-semibold">Filtros de Busqueda</span>
+            <span class="font-semibold">Filtros de Búsqueda</span>
         </div>
         
         <div class="p-6">
@@ -26,7 +48,7 @@
                         <select wire:model.live="sucursalId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5">
                             <option value="">Seleccionar...</option>
                             @foreach($sucursales as $suc)
-                                <option value="{{ $suc->id }}">{{ $suc->nombre }}</option>
+                                <option value="{{ $suc->codLocal }}">{{ $suc->nombre_local }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -91,10 +113,13 @@
         <table class="w-full text-sm text-left text-gray-600">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
                 <tr>
-                    <th scope="col" class="px-6 py-4 font-bold flex items-center cursor-pointer">ID <svg class="w-3 h-3 ml-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path></svg></th>
-                    <th scope="col" class="px-6 py-4 font-bold">METRO <svg class="w-3 h-3 ml-1 text-gray-400 inline" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path></svg></th>
+                    <th scope="col" class="px-6 py-4 font-bold">ID</th>
+                    <th scope="col" class="px-6 py-4 font-bold">METRO</th>
                     <th scope="col" class="px-6 py-4 font-bold">CÓDIGO PRODUCTO</th>
                     <th scope="col" class="px-6 py-4 font-bold">DESCRIPCIÓN</th>
+                    <th scope="col" class="px-6 py-4 font-bold">STOCK SISTEMA</th>
+                    <th scope="col" class="px-6 py-4 font-bold">CONTEO FÍSICO</th>
+                    <th scope="col" class="px-6 py-4 font-bold text-center">DIFERENCIA</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,14 +129,31 @@
                         <td class="px-6 py-4">
                             <span class="bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-gray-200">{{ $registro->metro }}</span>
                         </td>
-                        <td class="px-6 py-4">{{ $registro->producto_codigo }}</td>
+                        <td class="px-6 py-4">{{ $registro->codigo_producto ?? $registro->producto_codigo }}</td>
                         <td class="px-6 py-4 text-gray-500">
-                            {{ $registro->producto ? $registro->producto->descripcion : 'Producto sin descripción' }}
+                            {{ $registro->descripcion_producto ?? ($registro->producto ? $registro->producto->descripcion : 'Producto sin descripción') }}
+                        </td>
+                        <td class="px-6 py-4 font-medium">{{ $registro->stock_sistema ?? 0 }}</td>
+                        <td class="px-6 py-4 font-bold text-blue-600">{{ $registro->conteo_fisico ?? 0 }}</td>
+                        <td class="px-6 py-4 text-center">
+                            @php
+                                $stock = $registro->stock_sistema ?? 0;
+                                $conteo = $registro->conteo_fisico ?? 0;
+                                $diferencia = $conteo - $stock;
+                            @endphp
+                            
+                            @if($diferencia > 0)
+                                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded border border-emerald-200">+{{ $diferencia }}</span>
+                            @elseif($diferencia < 0)
+                                <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded border border-red-200">{{ $diferencia }}</span>
+                            @else
+                                <span class="bg-gray-100 text-gray-800 text-xs font-bold px-2.5 py-0.5 rounded border border-gray-200">0</span>
+                            @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">No hay registros para los filtros seleccionados.</td>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">No hay registros para los filtros seleccionados.</td>
                     </tr>
                 @endforelse
             </tbody>

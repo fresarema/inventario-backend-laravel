@@ -9,14 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('carreras', function (Blueprint $table) {
-            $table->id('id');
-            $table->string('nombre');
-            $table->string('jefe_carrera');
-
-            $table->timestamps();
+        Schema::create('maestro_locales', function (Blueprint $table) {
+            $table->id();
+            $table->string('codLocal');
+            $table->string('nombre_local');
+           
         });
     }
 
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('carreras');
+        Schema::dropIfExists('maestro_locals');
     }
 };

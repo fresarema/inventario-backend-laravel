@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\MaestroLocal;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
-
+    protected $table = 'user';
     /**
      * The attributes that are mass assignable.
      *
@@ -21,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'rut_usuario',
+        'tipo',
     ];
 
     /**
@@ -41,4 +44,17 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function sucursales()
+    {
+        // Relación N:M indicando las llaves exactas que usamos
+        return $this->belongsToMany(
+            MaestroLocal::class, 
+            'user_sucursal', 
+            'user_id', 
+            'sucursal_id', 
+            'id', 
+            'codLocal'
+        );
+    }
 }

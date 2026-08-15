@@ -8,5 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Inventario extends Model
 {
     use HasFactory;
-    protected $fillable = ['nombre', 'sucursal_id', 'activo'];
+
+    // Apunta a la tabla corporativa exacta
+    protected $table = 'Inventario';
+    
+    // Desactiva los timestamps si la tabla original no tiene created_at y updated_at
+    public $timestamps = false; 
+
+    protected $fillable = [
+        'user_id',
+        'inventario', 
+        'codLocal',
+        'fecha',
+        'observacion',
+        'estado',
+        'nombre_local'
+    ];
 }

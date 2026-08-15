@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Livewire\Estudiantes;
-
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\InventarioController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,7 +15,7 @@ use App\Livewire\Estudiantes;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/login');
 });
 
 Auth::routes();
@@ -24,7 +24,42 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-// RUTA DEL MANTENEDOR DE ESTUDIANTES (LIVEWIRE)
-Route::get('/estudiantes',Estudiantes::class)->middleware('auth')->name('estudiantes.index');
+
+// Todas las rutas dentro de este grupo requieren iniciar sesión
+Route::middleware(['auth'])->group(function () {
+    
+    // Ruta principal del panel
+    Route::get('/home', function () {
+        return view('welcome'); 
+    })->name('home');
+
+    // Rutas de Modulos
+    Route::get('/usuarios', function () {
+        return "Aquí irá el CRUD de Usuarios";
+    });
+
+    // Rutas de CRUD de usuarios
+    Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
+    Route::get('/usuarios/crear', [UsuarioController::class, 'create'])->name('usuarios.create');
+    Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
+    Route::get('/usuarios/{id}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
+    Route::put('/usuarios/{id}', [UsuarioController::class, 'update'])->name('usuarios.update');
+    Route::delete('/usuarios/{id}', [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
+
+    // Rutas del Módulo de Inventarios
+    Route::get('/inventarios', [InventarioController::class, 'index'])->name('inventarios.index');
+    Route::get('/inventarios/crear', [InventarioController::class, 'create'])->name('inventarios.create');
+    Route::post('/inventarios', [InventarioController::class, 'store'])->name('inventarios.store');
+
+    // Ruta para cerrar el inventario
+    Route::put('/inventarios/{id}/cerrar', [InventarioController::class, 'cerrar'])->name('inventarios.cerrar');
+    Route::get('/reportes', function () {
+        return "Aquí colocaremos el componente Livewire de la grilla de datos";
+    });
+
+    // Ruta para ver los detalles del inventario
+    Route::get('/inventarios/{id}', [InventarioController::class, 'show'])->name('inventarios.show');
+
+});
 
 

@@ -93,6 +93,19 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'sqlsrv_maestra' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_MAESTRA', 'localhost'),
+            'port' => env('DB_PORT_MAESTRA', '1433'),
+            'database' => env('DB_DATABASE_MAESTRA', 'forge'),
+            'username' => env('DB_USERNAME_MAESTRA', 'forge'),
+            'password' => env('DB_PASSWORD_MAESTRA', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
     ],
 
     /*
