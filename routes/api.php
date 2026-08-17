@@ -19,17 +19,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Ruta pública (cualquiera puede intentar logearse)
-Route::post('/login', [App\Http\Controllers\Api\InventarioController::class, 'login']);
+// Endpoint para que la app móvil valide al operario
+Route::post('/login', [InventarioApiController::class, 'login']);
 
 // Rutas protegidas por Sanctum
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/productos', [App\Http\Controllers\Api\InventarioController::class, 'productos']);
-    Route::post('/inventario/sincronizar', [App\Http\Controllers\Api\InventarioController::class, 'sincronizar']);
+    Route::post('/inventario/sincronizar', [App\Http\Controllers\Api\InventarioApiController::class, 'sincronizar']);
 });
 
-// Endpoint para que la app móvil valide al operario
-Route::post('/login', [InventarioApiController::class, 'login']);
 
 // 1. Endpoint para que Flutter descargue los inventarios disponibles en un local
 Route::get('/inventarios/abiertos/{codLocal}', [InventarioApiController::class, 'getInventariosAbiertos']);

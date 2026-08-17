@@ -131,7 +131,7 @@
                         </td>
                         <td class="px-6 py-4">{{ $registro->codigo_producto ?? $registro->producto_codigo }}</td>
                         <td class="px-6 py-4 text-gray-500">
-                            {{ $registro->descripcion_producto ?? ($registro->producto ? $registro->producto->descripcion : 'Producto sin descripción') }}
+                            {{ $registro->descripcion_producto ?? ($registro->producto ? $registro->descripcion_producto : 'Producto sin descripción') }}
                         </td>
                         <td class="px-6 py-4 font-medium">{{ $registro->stock_sistema ?? 0 }}</td>
                         <td class="px-6 py-4 font-bold text-blue-600">{{ $registro->conteo_fisico ?? 0 }}</td>

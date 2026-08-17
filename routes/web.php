@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\InventarioController;
+use App\Http\Livewire\GestionMetros;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -59,6 +60,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Ruta para ver los detalles del inventario
     Route::get('/inventarios/{id}', [InventarioController::class, 'show'])->name('inventarios.show');
+
+    // Ruta del modulo de pasillos
+    Route::get('/metros', function () {
+        return view('metros.index'); 
+    })->name('metros.index');
 
 });
 

@@ -46,8 +46,7 @@ class ReporteInventario extends Component
         // Cargar los registros usando la tabla 'inventario_conteo'[cite: 3]
         $registros = collect();
         if ($this->inventarioId) {
-            $registros = InventarioConteo::with('producto')
-                ->where('inventario_id', $this->inventarioId)
+            $registros = InventarioConteo::where('inventario_id', $this->inventarioId)
                 ->when($this->metro, function($query) {
                     $query->where('metro_id', $this->metro);
                 })

@@ -7,35 +7,47 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Inventario;
 
 class InventarioApiController extends Controller
 {
-    /**
-     * Retorna los inventarios en estado "Abierto" (1) para un local específico
-     */
-    public function getInventariosAbiertos($codLocal)
+    // 1. LOGIN DE FLUTTER
+    public function login(Request $request)
     {
-        // Consulta la tabla corporativa en la base de datos principal
-        $inventarios = DB::table('Inventario')
-                         ->where('codLocal', $codLocal)
-                         ->where('estado', 1) // 1 = Abierto
-                         ->select('id', 'inventario as titulo', 'fecha', 'observacion')
-                         ->orderBy('id', 'desc')
-                         ->get();
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json(['mensaje' => 'Las credenciales son incorrectas'], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 1. Busca en tabla relacional 'user_sucursal' los locales asignados a este operario
+        $localesDelUsuario = \Illuminate\Support\Facades\DB::table('user_sucursal')
+                                ->where('user_id', $user->id)
+                                ->pluck('sucursal_id');
+
+        // 2. Filtra los inventarios abiertos (estado 1) que pertenezcan EXCLUSIVAMENTE a los locales de este usuario
+        $inventariosActivos = Inventario::where('estado', 1)
+                                        ->whereIn('codLocal', $localesDelUsuario)
+                                        ->get();
 
         return response()->json([
-            'status' => 'success',
-            'data' => $inventarios
+            'token' => $token,
+            'usuario' => $user->name,
+            'inventarios_activos' => $inventariosActivos 
         ], 200);
     }
 
-    /**
-     * Retorna el catálogo maestro de productos para la base de datos local de Flutter
-     */
+    // 2. CATÁLOGO DUAL
     public function getProductos()
     {
         try {
-            // Utiliza la conexión secundaria que configuramos en el .env
             $productos = DB::connection('sqlsrv_maestra')
                            ->table('productos')
                            ->select('codigo', 'descripcion') 
@@ -43,57 +55,73 @@ class InventarioApiController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'total_registros' => $productos->count(),
-                'data' => $productos
+                'data' => $productos 
             ], 200);
-
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error al conectar con la base de datos maestra: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Recibe el conteo físico desde Flutter, cruza el stock teórico y guarda en SQL Server
-     */
-    public function sincronizar(Request $request)
+    // 3. SINCRONIZACIÓN MAESTRA CON CRUCE DE STOCK
+public function sincronizar(Request $request)
     {
-        // 1. Validar la estructura del JSON que enviará Flutter
         $request->validate([
             'inventario_id' => 'required|integer',
-            'user_id'       => 'required|integer',
-            'conteo'        => 'required|array',
-            'conteo.*.codigo_producto' => 'required|string',
-            'conteo.*.cantidad'        => 'required|integer|min:1',
+            'metro' => 'required|string',
+            'conteos' => 'required|array',
+            'conteos.*.codigo' => 'required|string',
+            'conteos.*.cantidad' => 'required|numeric',
         ]);
 
         $inventarioId = $request->inventario_id;
-        $userId = $request->user_id;
-        $conteoFisico = $request->conteo;
+        $userId = $request->user()->id; 
+        $conteoFisico = $request->conteos;
+        $numeroMetroEnviado = $request->metro;
 
         try {
-            // Inicia una transacción por seguridad
             DB::beginTransaction();
 
+            // 1. Busca el metro en la tabla 'metros' usando el número que digitó el operario
+            $metroRecord = DB::table('metros')->where('numeroMetro', $numeroMetroEnviado)->first();
+
+            // 2. Si el metro no existe en la BD, devolvemos un error para que la app se lo muestre al operario
+            if (!$metroRecord) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'El Metro N° ' . $numeroMetroEnviado . ' no existe en la base de datos.'
+                ], 400);
+            }
+
+            // 3. Logica de metros abiertos y cerrados
+            
+            if ($metroRecord->estado != 1) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'El Metro N° ' . $numeroMetroEnviado . ' está cerrado y no acepta más registros.'
+                ], 400);
+            }
+            
+
+            // 4. Captura el ID real para la llave foránea
+            $metroIdCorrecto = $metroRecord->id;
+            // ------------------------------
+
             foreach ($conteoFisico as $item) {
-                
-                // 2. Consultar el stock teórico en la base de datos maestra
+                // Consulta stock teórico a la base maestra
                 $productoMaestro = DB::connection('sqlsrv_maestra')
                                      ->table('productos')
-                                     ->where('codigo', $item['codigo_producto'])
+                                     ->where('codigo', $item['codigo'])
                                      ->first();
                 
-                // Si el producto existe tomamos su stock, si no, asumimos 0
                 $stockSistema = $productoMaestro ? $productoMaestro->stock_sistema : 0;
                 $descripcion = $productoMaestro ? $productoMaestro->descripcion : 'Producto sin descripción';
 
-                // 3. Guardar el choque de realidad en la tabla corporativa
+                // Inserción en tabla corporativa con las variables cruzadas
                 DB::table('inventario_conteo')->insert([
                     'inventario_id'        => $inventarioId,
                     'user_id'              => $userId,
-                    'codigo_producto'      => $item['codigo_producto'],
+                    'metro_id'             => $metroIdCorrecto, 
+                    'codigo_producto'      => $item['codigo'],
                     'descripcion_producto' => $descripcion,
                     'stock_sistema'        => $stockSistema,
                     'conteo_fisico'        => $item['cantidad'],
@@ -101,64 +129,16 @@ class InventarioApiController extends Controller
                 ]);
             }
 
-            // Si todo salió bien, confirmamos los cambios en la base de datos
             DB::commit();
 
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Sincronización completada con éxito. Los datos ya están en el sistema central.'
+                'message' => 'Sincronización completada con éxito.'
             ], 200);
 
         } catch (\Exception $e) {
-            // Si hay cualquier error (ej. se cae SQL Server), revertimos todo para no dejar datos a medias
             DB::rollBack();
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Error crítico al sincronizar: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
-    }
-
-    /**
-     * Valida las credenciales del operario desde la app móvil
-     */
-    public function login(Request $request)
-    {
-        // 1. Validamos que envíen el RUT y la contraseña
-        $request->validate([
-            'rut_usuario' => 'required|string',
-            'password'    => 'required|string',
-        ]);
-
-        // 2. Buscamos al usuario en la base de datos
-        $user = User::where('rut_usuario', $request->rut_usuario)->first();
-
-        // 3. Verificamos que exista y que la contraseña coincida
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'RUT o contraseña incorrectos.'
-            ], 401);
-        }
-
-        // 4. Verificamos que el usuario tenga permisos de operario
-        if ($user->tipo !== 'Operario' && $user->tipo !== 'Admin') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'No tienes permisos para acceder a la aplicación móvil.'
-            ], 403);
-        }
-
-        // 5. Retornamos la información vital para que Flutter la guarde localmente
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Login exitoso',
-            'data'    => [
-                'id'          => $user->id,
-                'name'        => $user->name,
-                'rut_usuario' => $user->rut_usuario,
-                'tipo'        => $user->tipo
-            ]
-        ], 200);
     }
 }

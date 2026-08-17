@@ -318,6 +318,11 @@ return [
             'url'  => 'inventarios',
             'icon' => 'fas fa-fw fa-boxes',
         ],
+        [
+            'text' => 'Gestión de Pasillos',
+            'route' => 'metros.index', 
+            'icon' => 'fas fa-columns',
+        ],
 
         ['header' => 'ANÁLISIS'],
         [
