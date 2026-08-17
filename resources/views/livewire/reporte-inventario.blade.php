@@ -70,7 +70,7 @@
                             @if(isset($inventarios))
                                 @foreach($inventarios as $inv)
                                     <option value="{{ $inv->id }}">
-                                        ID: {{ $inv->id }} - {{ $inv->nombre }} {{ $inv->activo ? '(Activo)' : '(Cerrado)' }}
+                                        ID: {{ $inv->id }} - {{ $inv->nombre }} {{ $inv->estado == 1 ? '(Abierto)' : '(Cerrado)' }}
                                     </option>
                                 @endforeach
                             @endif

@@ -54,8 +54,8 @@ Route::middleware(['auth'])->group(function () {
     // Ruta para cerrar el inventario
     Route::put('/inventarios/{id}/cerrar', [InventarioController::class, 'cerrar'])->name('inventarios.cerrar');
     Route::get('/reportes', function () {
-        return "Aquí colocaremos el componente Livewire de la grilla de datos";
-    });
+        return view('reportes'); 
+    })->name('reportes.index');
 
     // Ruta para ver los detalles del inventario
     Route::get('/inventarios/{id}', [InventarioController::class, 'show'])->name('inventarios.show');
