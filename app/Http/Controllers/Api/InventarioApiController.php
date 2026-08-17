@@ -62,8 +62,51 @@ class InventarioApiController extends Controller
         }
     }
 
-    // 3. SINCRONIZACIÓN MAESTRA CON CRUCE DE STOCK
-public function sincronizar(Request $request)
+    // 3. VALIDAR METRO
+    public function validarMetro(Request $request)
+    {
+        $request->validate([
+            'inventario_id' => 'required|integer',
+            'numero_metro' => 'required|string'
+        ]);
+
+        $inventarioActual = Inventario::find($request->inventario_id);
+        
+        if (!$inventarioActual) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Inventario no válido.'
+            ], 400);
+        }
+
+        $metroRecord = DB::table('metros')
+                         ->where('numeroMetro', $request->numero_metro)
+                         ->where('local_id', $inventarioActual->codLocal)
+                         ->first();
+
+        if (!$metroRecord) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'El Metro N° ' . $request->numero_metro . ' no existe en tu sucursal.'
+            ], 404);
+        }
+
+        if ($metroRecord->estado != 1) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'El Metro N° ' . $request->numero_metro . ' está cerrado.'
+            ], 403);
+        }
+
+        return response()->json([
+            'status' => 'success', 
+            'message' => 'Metro válido y abierto.'
+        ], 200);
+    }
+
+
+    // 4. SINCRONIZACIÓN MAESTRA CON CRUCE DE STOCK
+    public function sincronizar(Request $request)
     {
         $request->validate([
             'inventario_id' => 'required|integer',
@@ -81,19 +124,34 @@ public function sincronizar(Request $request)
         try {
             DB::beginTransaction();
 
-            // 1. Busca el metro en la tabla 'metros' usando el número que digitó el operario
-            $metroRecord = DB::table('metros')->where('numeroMetro', $numeroMetroEnviado)->first();
-
-            // 2. Si el metro no existe en la BD, devolvemos un error para que la app se lo muestre al operario
-            if (!$metroRecord) {
+            // 1. Obtener la sucursal a la que pertenece este inventario
+            $inventarioActual = Inventario::find($inventarioId);
+            
+            if (!$inventarioActual) {
                 return response()->json([
                     'status' => 'error', 
-                    'message' => 'El Metro N° ' . $numeroMetroEnviado . ' no existe en la base de datos.'
+                    'message' => 'El proceso de inventario no existe o fue eliminado.'
                 ], 400);
             }
 
-            // 3. Logica de metros abiertos y cerrados
-            
+            // Usa codLocal ya que es el identificador de la sucursal en tu modelo de Inventario
+            $idSucursal = $inventarioActual->codLocal; 
+
+            // 2. Busca el metro considerando AMBAS condiciones: número de metro Y sucursal
+            $metroRecord = DB::table('metros')
+                             ->where('numeroMetro', $numeroMetroEnviado)
+                             ->where('local_id', $idSucursal)
+                             ->first();
+
+            // 3. Si el metro no existe en la BD para esa sucursal, devuelve un error
+            if (!$metroRecord) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'El Metro N° ' . $numeroMetroEnviado . ' no existe en tu sucursal asignada.'
+                ], 400);
+            }
+
+            // 4. Lógica de metros abiertos y cerrados
             if ($metroRecord->estado != 1) {
                 return response()->json([
                     'status' => 'error', 
@@ -101,8 +159,7 @@ public function sincronizar(Request $request)
                 ], 400);
             }
             
-
-            // 4. Captura el ID real para la llave foránea
+            // 5. Captura el ID real para la llave foránea
             $metroIdCorrecto = $metroRecord->id;
             // ------------------------------
 

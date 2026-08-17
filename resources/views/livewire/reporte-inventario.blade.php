@@ -126,8 +126,11 @@
                 @forelse($registros as $registro)
                     <tr class="bg-white border-b hover:bg-gray-50">
                         <td class="px-6 py-4 font-medium text-gray-900">{{ $registro->id }}</td>
-                        <td class="px-6 py-4">
-                            <span class="bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-gray-200">{{ $registro->metro }}</span>
+                        <td>
+                            <input type="checkbox" class="mr-2"> 
+                            <span class="font-weight-bold text-dark">
+                                {{ $registro->nombre_metro ?? $registro->metro_id ?? 'N/A' }}
+                            </span>
                         </td>
                         <td class="px-6 py-4">{{ $registro->codigo_producto ?? $registro->producto_codigo }}</td>
                         <td class="px-6 py-4 text-gray-500">

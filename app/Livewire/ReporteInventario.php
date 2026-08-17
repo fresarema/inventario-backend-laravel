@@ -45,10 +45,14 @@ class ReporteInventario extends Component
 
         // Cargar los registros usando la tabla 'inventario_conteo'[cite: 3]
         $registros = collect();
+        
         if ($this->inventarioId) {
-            $registros = InventarioConteo::where('inventario_id', $this->inventarioId)
+            $registros = InventarioConteo::leftJoin('metros', 'inventario_conteo.metro_id', '=', 'metros.id')
+                ->select('inventario_conteo.*', 'metros.numeroMetro as nombre_metro')
+                ->where('inventario_conteo.inventario_id', $this->inventarioId)
                 ->when($this->metro, function($query) {
-                    $query->where('metro_id', $this->metro);
+                    // Especificamos la tabla para evitar ambigüedad en el WHERE
+                    $query->where('metros.numeroMetro', $this->metro);
                 })
                 ->get();
         }

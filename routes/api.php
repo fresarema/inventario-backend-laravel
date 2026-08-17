@@ -37,3 +37,5 @@ Route::get('/productos', [InventarioApiController::class, 'getProductos']);
 
 // 3. Endpoint para que Flutter envíe los productos escaneados
 Route::post('/sincronizar', [InventarioApiController::class, 'sincronizar']);
+
+Route::post('/validar-metro', [InventarioApiController::class, 'validarMetro']);

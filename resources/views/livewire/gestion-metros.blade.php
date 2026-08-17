@@ -24,6 +24,20 @@
                 
                 <form wire:submit.prevent="guardar">
                     <div class="card-body">
+                        
+                        <div class="form-group">
+                            <label for="local_id">Sucursal / Local</label>
+                            <select id="local_id" wire:model.defer="local_id" class="form-control @error('local_id') is-invalid @enderror">
+                                <option value="">Seleccione un local...</option>
+                                @foreach($locales as $local)
+                                    <option value="{{ $local->id }}">{{ $local->nombre_local }}</option>
+                                @endforeach
+                            </select>
+                            @error('local_id') 
+                                <span class="invalid-feedback">{{ $message }}</span> 
+                            @enderror
+                        </div>
+
                         <div class="form-group">
                             <label for="numeroMetro">Número de Metro / Identificador</label>
                             <input type="text" 
@@ -64,11 +78,12 @@
                     <h3 class="card-title"><i class="fas fa-list mr-1"></i> Administración de Pasillos</h3>
                 </div>
                 
-                <div class="card-body table-responsive p-0">
-                    <table class="table table-hover text-nowrap">
+                <div class="card-body table-responsive p-0" style="max-height: 500px;">
+                    <table class="table table-hover table-head-fixed text-nowrap">
                         <thead>
                             <tr>
                                 <th style="width: 10px">ID</th>
+                                <th>Sucursal</th>
                                 <th>Metro</th>
                                 <th class="text-center">Estado Actual</th>
                                 <th class="text-center">Acción</th>
@@ -78,6 +93,7 @@
                             @forelse ($metros as $metro)
                                 <tr>
                                     <td>{{ $metro->id }}</td>
+                                    <td>{{ $metro->nombre_local }}</td>
                                     <td><span class="font-weight-bold text-dark">{{ $metro->numeroMetro }}</span></td>
                                     <td class="text-center">
                                         @if ($metro->estado == 1)
@@ -96,7 +112,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted font-italic">
+                                    <td colspan="5" class="text-center py-4 text-muted font-italic">
                                         No hay pasillos registrados en el sistema. Utiliza el formulario para comenzar.
                                     </td>
                                 </tr>
