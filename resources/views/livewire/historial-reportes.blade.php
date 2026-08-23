@@ -31,10 +31,12 @@
                                 </span>
                             </td>
                             <td class="align-middle">
-                                <button class="btn btn-sm text-white mr-1" style="background-color: #ef4444;" title="Descargar PDF">
+                                <button wire:click="exportarPDF({{ $inv->id }})" class="btn btn-sm text-white mr-1" style="background-color: #ef4444;" title="Descargar PDF">
                                     <i class="fas fa-file-pdf"></i> PDF
                                 </button>
-                                <button class="btn btn-sm text-white" style="background-color: #10b981;" title="Descargar Excel">
+                                
+
+                                <button wire:click="exportarExcel({{ $inv->id }})" class="btn btn-sm text-white" style="background-color: #10b981;" title="Descargar Excel">
                                     <i class="fas fa-file-excel"></i> Excel
                                 </button>
                             </td>
