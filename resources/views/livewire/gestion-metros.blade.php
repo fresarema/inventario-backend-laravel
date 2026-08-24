@@ -30,7 +30,7 @@
                             <select id="local_id" wire:model.defer="local_id" class="form-control @error('local_id') is-invalid @enderror">
                                 <option value="">Seleccione un local...</option>
                                 @foreach($locales as $local)
-                                    <option value="{{ $local->id }}">{{ $local->nombre_local }}</option>
+                                    <option value="{{ $local->codLocal }}">{{ $local->nombre_local }}</option>
                                 @endforeach
                             </select>
                             @error('local_id') 
