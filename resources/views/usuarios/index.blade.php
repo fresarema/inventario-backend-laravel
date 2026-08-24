@@ -6,73 +6,11 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 @stop
 
-@section('content_header')
-    <div class="row mb-2">
-        <div class="col-sm-6">
-            <h1>Gestión de Usuarios</h1>
-        </div>
-        <div class="col-sm-6 text-right">
-            <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Usuario
-            </a>
-        </div>
-    </div>
-@stop
+
 
 @section('content')
-    <div class="card">
-        <div class="card-body table-responsive">
-            
-            <table id="tabla-usuarios" class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th style="width: 50px">ID</th>
-                        <th>RUT</th>
-                        <th>Nombre</th>
-                        <th>Correo</th>
-                        <th>Tipo</th>
-                        <th>Locales Asignados</th>
-                        <th style="width: 100px">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($usuarios as $usuario)
-                        <tr>
-                            <td>{{ $usuario->id }}</td>
-                            <td>{{ $usuario->rut_usuario }}</td>
-                            <td>{{ $usuario->name }}</td>
-                            <td>{{ $usuario->email }}</td>
-                            <td>
-                                <span class="badge {{ $usuario->tipo == 'Administrador' ? 'badge-danger' : 'badge-success' }}">
-                                    {{ $usuario->tipo }}
-                                </span>
-                            </td>
-                            <td>
-                                {{-- Recorremos las sucursales asignadas y las mostramos como etiquetas --}}
-                                @forelse($usuario->sucursales as $sucursal)
-                                    <span class="badge badge-info">{{ $sucursal->nombre_local }}</span>
-                                @empty
-                                    <span class="text-muted text-sm">Sin locales</span>
-                                @endforelse
-                            </td>
-                            <td>
-                                <form action="{{ route('usuarios.destroy', $usuario->id) }}" method="POST" class="d-inline form-eliminar">
-                                    @csrf
-                                    @method('DELETE')
-                                    <a href="{{ route('usuarios.edit', $usuario->id) }}" class="btn btn-sm btn-info" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <livewire:usuarios-component />
+
 @stop
 
 
@@ -122,5 +60,29 @@
                     }
                 })
             });
+    </script>
+
+    <script>
+        // Escucha cuando Livewire pide abrir el modal
+        window.addEventListener('abrir-modal', event => {
+            $('#modalUsuario').modal('show');
+        });
+
+        // Escucha cuando Livewire pide cerrar el modal
+        window.addEventListener('cerrar-modal', event => {
+            $('#modalUsuario').modal('hide');
+        });
+
+        // Escucha el mensaje de éxito para lanzar la alerta
+        window.addEventListener('alerta-exito', event => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Listo!',
+                // En Livewire 2 se usa event.detail.mensaje, en Livewire 3 es event.detail[0].mensaje
+                text: event.detail.mensaje || event.detail[0].mensaje, 
+                timer: 3000,
+                showConfirmButton: false
+            });
+        });
     </script>
 @stop
