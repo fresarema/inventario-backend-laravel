@@ -1,18 +1,5 @@
 <div>
-    <!-- Alerta de éxito con SweetAlert2 -->
-    @if (session()->has('mensaje'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    title: '¡Operación Exitosa!',
-                    text: '{{ session('mensaje') }}',
-                    icon: 'success',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Entendido'
-                });
-            });
-        </script>
-    @endif
+    
 
     <div class="row">
         <!-- Formulario de Creación (Columna Izquierda) -->
@@ -38,16 +25,30 @@
                             @enderror
                         </div>
 
-                        <div class="form-group">
-                            <label for="numeroMetro">Número de Metro / Identificador</label>
-                            <input type="text" 
-                                   id="numeroMetro" 
-                                   wire:model.defer="numeroMetro" 
-                                   class="form-control @error('numeroMetro') is-invalid @enderror"
-                                   placeholder="Ej: 50">
-                            @error('numeroMetro') 
-                                <span class="invalid-feedback">{{ $message }}</span> 
-                            @enderror
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="metroDesde">Desde el Metro</label>
+                                <input type="number" 
+                                       id="metroDesde" 
+                                       wire:model.defer="metroDesde" 
+                                       class="form-control @error('metroDesde') is-invalid @enderror"
+                                       placeholder="Ej: 1">
+                                @error('metroDesde') 
+                                    <span class="invalid-feedback">{{ $message }}</span> 
+                                @enderror
+                            </div>
+                            
+                            <div class="col-md-6 form-group">
+                                <label for="metroHasta">Hasta (Opcional)</label>
+                                <input type="number" 
+                                       id="metroHasta" 
+                                       wire:model.defer="metroHasta" 
+                                       class="form-control @error('metroHasta') is-invalid @enderror"
+                                       placeholder="Ej: 50">
+                                @error('metroHasta') 
+                                    <span class="invalid-feedback">{{ $message }}</span> 
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -108,6 +109,10 @@
                                             <i class="fas {{ $metro->estado == 1 ? 'fa-lock' : 'fa-lock-open' }} mr-1"></i>
                                             {{ $metro->estado == 1 ? 'Cerrar Pasillo' : 'Reabrir Pasillo' }}
                                         </button>
+
+                                        <button onclick="confirmarEliminacion({{ $metro->id }})" class="btn btn-sm btn-outline-danger ml-1" title="Eliminar Pasillo">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             @empty
@@ -123,4 +128,34 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        window.addEventListener('alerta-exito', event => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Operación Finalizada!',
+                text: event.detail.mensaje || event.detail[0].mensaje, 
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Entendido'
+            });
+        });
+
+        // Función para confirmar la eliminación
+        function confirmarEliminacion(id) {
+            Swal.fire({
+                title: '¿Eliminar este pasillo?',
+                text: "Esta acción borrará el registro de SQL Server de forma permanente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('eliminar', id);
+                }
+            });
+        }
+    </script>
 </div>
