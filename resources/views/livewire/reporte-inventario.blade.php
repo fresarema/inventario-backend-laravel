@@ -102,10 +102,18 @@
         </div>
     </div>
 
-    <!-- Botón Exportar -->
-    <button wire:click="exportarExcel" class="btn btn-success">
-        <i class="fas fa-file-excel"></i> EXPORTAR A EXCEL
-    </button>
+    <!-- Contenedor de Botones de Exportación -->
+    <div class="flex gap-2 mb-4">
+        <button wire:click="exportarExcel" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> EXPORTAR A EXCEL
+        </button>
+        
+
+        <button wire:click="exportarPDF" class="btn btn-danger">
+            <i class="fas fa-file-pdf"></i> EXPORTAR PDF CODIGOS
+            <span wire:loading wire:target="exportarPDF" class="spinner-border spinner-border-sm ml-2" role="status" aria-hidden="true"></span>
+        </button>
+    </div>
 
     <!-- Tabla de Resultados -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

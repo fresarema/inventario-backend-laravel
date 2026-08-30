@@ -117,4 +117,37 @@ class ReporteInventario extends Component
         }
         return Excel::download(new ReporteInventarioExport($this->inventarioId, $this->metro), 'reporte_inventario.xlsx');
     }
+
+    public function exportarPDF()
+    {
+        // Valida que haya un inventario seleccionado
+        if (!$this->inventarioId) {
+            $this->dispatch('alerta-exito', mensaje: 'Debe seleccionar un inventario para exportar.');
+            return; 
+        }
+
+        // 1. Trae los mismos registros filtrados
+        $registros = InventarioConteo::leftJoin('metros', 'inventario_conteo.metro_id', '=', 'metros.id')
+            ->select('inventario_conteo.*', 'metros.numeroMetro as nombre_metro')
+            ->where('inventario_conteo.inventario_id', $this->inventarioId)
+            ->when($this->metro, function($query) {
+                $query->where('metros.numeroMetro', $this->metro);
+            })
+            ->get();
+
+        // 2. Trae datos de cabecera
+        $inventario = Inventario::find($this->inventarioId);
+        
+        // 3. Genera el PDF 
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.planilla-codigos', [
+            'registros' => $registros,
+            'inventario' => $inventario,
+            'filtroMetro' => $this->metro
+        ])->setPaper('a4', 'landscape');
+
+        // 4. Descarga el archivo
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->stream();
+        }, 'Codigos_Inventario.pdf');
+    }
 }
