@@ -136,7 +136,37 @@
                             {{ $registro->descripcion_producto ?? ($registro->producto ? $registro->descripcion_producto : 'Producto sin descripción') }}
                         </td>
                         <td class="px-6 py-4 font-medium">{{ $registro->stock_sistema ?? 0 }}</td>
-                        <td class="px-6 py-4 font-bold text-blue-600">{{ $registro->conteo_fisico ?? 0 }}</td>
+                        <td class="px-6 py-4">
+                            @if($editandoId === $registro->id)
+                                <!-- MODO EDICIÓN: Input y botones de guardar/cancelar -->
+                                <div class="flex items-center gap-2">
+                                    <input type="number" step="0.01" wire:model="nuevoConteo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-24 p-1">
+                                    
+                                    <button wire:click="guardarConteo" class="text-emerald-600 hover:text-emerald-800 bg-emerald-100 p-1 rounded" title="Guardar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                    
+                                    <button wire:click="cancelarEdicion" class="text-gray-500 hover:text-gray-700 bg-gray-200 p-1 rounded" title="Cancelar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                            @else
+                                <!-- MODO LECTURA: Número y botones de lápiz/basurero -->
+                                <div class="flex items-center gap-3">
+                                    <span class="font-bold text-blue-600">{{ $registro->conteo_fisico ?? 0 }}</span>
+                                    
+                                    <!-- Botón Editar -->
+                                    <button wire:click="activarEdicion({{ $registro->id }}, {{ $registro->conteo_fisico ?? 0 }})" class="text-blue-400 hover:text-blue-600 transition-colors" title="Editar Conteo">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                    
+                                    <!-- Botón Eliminar (Dispara SweetAlert2) -->
+                                    <button onclick="confirmarEliminacionRegistro({{ $registro->id }})" class="text-red-400 hover:text-red-600 transition-colors" title="Eliminar Registro">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-center">
                             @php
                                 $stock = $registro->stock_sistema ?? 0;
@@ -165,4 +195,34 @@
             Mostrando {{ $registros->count() }} registros
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        window.addEventListener('alerta-exito', event => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Operación Exitosa!',
+                text: event.detail.mensaje || event.detail[0].mensaje, 
+                timer: 2000,
+                showConfirmButton: false
+            });
+        });
+
+        function confirmarEliminacionRegistro(id) {
+            Swal.fire({
+                title: '¿Eliminar este registro?',
+                text: "El conteo físico se borrará permanentemente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Llama al método eliminarRegistro en Livewire
+                    @this.call('eliminarRegistro', id);
+                }
+            });
+        }
+    </script>
 </div>

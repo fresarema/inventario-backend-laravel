@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\RegistroConteo;
 use App\Models\Sucursal;
 use App\Models\Inventario;
 use App\Models\InventarioConteo;
@@ -12,32 +11,71 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReporteInventario extends Component
 {
-    // Variables enlazadas a los inputs
+    // Variables de Filtros 
     public $sucursalId = '';
     public $inventarioId = ''; 
     public $metro = '';
 
-    // "Hook" de Livewire: Se ejecuta automáticamente cuando el usuario cambia la sucursal
+    // Variables de edicion
+    public $editandoId = null;
+    public $nuevoConteo = 0;
+
     public function updatedSucursalId()
     {
-        // Si cambia de local, resetea el inventario y el metro para evitar cruces de datos
         $this->inventarioId = '';
         $this->metro = '';
     }
 
+    // --- INICIO LÓGICA DE EDICIÓN ---
+    public function activarEdicion($id, $cantidadActual)
+    {
+        $this->editandoId = $id;
+        $this->nuevoConteo = $cantidadActual;
+    }
+
+    public function cancelarEdicion()
+    {
+        $this->editandoId = null;
+        $this->nuevoConteo = 0;
+    }
+
+    public function guardarConteo()
+    {
+        $this->validate([
+            'nuevoConteo' => 'required|numeric|min:0'
+        ]);
+
+        $registro = InventarioConteo::find($this->editandoId);
+        if ($registro) {
+            $registro->conteo_fisico = $this->nuevoConteo;
+            $registro->save();
+            
+            $this->dispatch('alerta-exito', mensaje: 'Conteo actualizado correctamente.');
+        }
+        
+        $this->cancelarEdicion();
+    }
+
+    public function eliminarRegistro($id)
+    {
+        $registro = InventarioConteo::find($id);
+        if ($registro) {
+            $registro->delete();
+            $this->dispatch('alerta-exito', mensaje: 'Registro de escaneo eliminado de la base de datos.');
+        }
+    }
+    // --- FIN LÓGICA DE EDICIÓN ---
+
     public function render()
     {
-        // 1. Cálculo de Métricas (KPIs) en tiempo real
         $inventariosActivos = Inventario::where('estado', 1)->count();
         $localesEnProceso = Inventario::where('estado', 1)->distinct('codLocal')->count('codLocal');
         $ultimaSincronizacion = InventarioConteo::max('created_at');
 
-        // Extrae los locales únicos directamente de la tabla Inventario
         $sucursales = Inventario::select('codLocal', 'nombre_local')
                                 ->distinct()
                                 ->get();
         
-        // Carga los inventarios según el local seleccionado (codLocal)
         $inventarios = collect();
         if ($this->sucursalId) {
             $inventarios = Inventario::where('codLocal', $this->sucursalId)
@@ -45,7 +83,6 @@ class ReporteInventario extends Component
                                      ->get();
         }
 
-        // Cargar los registros usando la tabla 'inventario_conteo'
         $registros = collect();
         
         if ($this->inventarioId) {
@@ -53,7 +90,6 @@ class ReporteInventario extends Component
                 ->select('inventario_conteo.*', 'metros.numeroMetro as nombre_metro')
                 ->where('inventario_conteo.inventario_id', $this->inventarioId)
                 ->when($this->metro, function($query) {
-                    // Especifica la tabla para evitar ambigüedad en el WHERE
                     $query->where('metros.numeroMetro', $this->metro);
                 })
                 ->get();
@@ -76,12 +112,9 @@ class ReporteInventario extends Component
 
     public function exportarExcel()
     {
-        // Si no hay ningún inventario seleccionado en los filtros, no hace nada
         if (!$this->inventarioId) {
             return; 
         }
-
-        // Descarga el archivo pasándole los filtros actuales
         return Excel::download(new ReporteInventarioExport($this->inventarioId, $this->metro), 'reporte_inventario.xlsx');
     }
 }
