@@ -11,7 +11,7 @@ class GestionMetros extends Component
     public $metros;
     public $locales; 
     
-    // Cambiam numeroMetro por un rango
+    // Cambia numeroMetro por un rango
     public $metroDesde;
     public $metroHasta;
     
@@ -26,7 +26,7 @@ class GestionMetros extends Component
 
     public function cargarMetros()
     {
-        $this->metros = Metro::join('maestro_locales', 'metros.local_id', '=', 'maestro_locales.id')
+        $this->metros = Metro::join('maestro_locales', 'metros.local_id', '=', 'maestro_locales.codLocal')
             ->select('metros.*', 'maestro_locales.nombre_local')
             ->orderBy('maestro_locales.nombre_local', 'asc')
             ->orderByRaw('CAST(metros.numeroMetro AS INT) ASC') // Ordena numéricamente
