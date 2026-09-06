@@ -9,6 +9,8 @@ use App\Exports\ReporteInventarioExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\InventarioConteo;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HistorialReportes extends Component
 {
@@ -19,8 +21,15 @@ class HistorialReportes extends Component
 
     public function render()
     {
-        // Filtra donde el estado NO sea 1 (Abierto) para mostrar solo el historial Cerrado
+        // 1. Identifica al usuario y sus locales permitidos
+        $userId = Auth::id();
+        $localesAsignados = DB::table('user_sucursal')
+                              ->where('user_id', $userId)
+                              ->pluck('sucursal_id');
+
+        // 2. Filtra donde el estado NO sea 1 (Cerrado) Y que pertenezca a sus sucursales
         $inventariosCerrados = Inventario::where('estado', '!=', 1)
+                                ->whereIn('codLocal', $localesAsignados)
                                 ->orderBy('id', 'desc')
                                 ->paginate(10);
 

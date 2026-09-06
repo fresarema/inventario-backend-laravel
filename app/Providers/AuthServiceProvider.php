@@ -4,6 +4,7 @@ namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,6 +23,11 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+        // Define quién tiene la llave de la puerta "is_superadmin"
+        Gate::define('is_superadmin', function ($user) {
+            
+            return $user->tipo === 'SuperAdmin'; 
+        });
 
         //
     }

@@ -312,6 +312,7 @@ return [
             'text' => 'Gestión de Usuarios',
             'route'  => 'usuarios.index',
             'icon' => 'fas fa-fw fa-users',
+            'can'  => 'is_superadmin',
         ],
         [
             'text' => 'Gestión de Inventarios',

@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Metro;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class GestionMetros extends Component
 {
@@ -20,16 +21,34 @@ class GestionMetros extends Component
 
     public function mount()
     {
-        $this->locales = DB::table('maestro_locales')->orderBy('nombre_local')->get();
+        // 1. Identifica al usuario y sus locales permitidos
+        $userId = Auth::id();
+        $localesAsignados = DB::table('user_sucursal')
+                              ->where('user_id', $userId)
+                              ->pluck('sucursal_id');
+
+        // 2. Filtra el selector de sucursales para crear metros
+        $this->locales = DB::table('maestro_locales')
+                           ->whereIn('codLocal', $localesAsignados)
+                           ->orderBy('nombre_local')
+                           ->get();
+                           
         $this->cargarMetros();
     }
 
     public function cargarMetros()
     {
+        // Repite la consulta de seguridad para blindar la tabla visual
+        $userId = Auth::id();
+        $localesAsignados = DB::table('user_sucursal')
+                              ->where('user_id', $userId)
+                              ->pluck('sucursal_id');
+
         $this->metros = Metro::join('maestro_locales', 'metros.local_id', '=', 'maestro_locales.codLocal')
+            ->whereIn('metros.local_id', $localesAsignados) 
             ->select('metros.*', 'maestro_locales.nombre_local')
             ->orderBy('maestro_locales.nombre_local', 'asc')
-            ->orderByRaw('CAST(metros.numeroMetro AS INT) ASC') // Ordena numéricamente
+            ->orderByRaw('CAST(metros.numeroMetro AS INT) ASC') 
             ->get();
     }
 

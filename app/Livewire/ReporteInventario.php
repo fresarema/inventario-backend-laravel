@@ -8,6 +8,8 @@ use App\Models\Inventario;
 use App\Models\InventarioConteo;
 use App\Exports\ReporteInventarioExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReporteInventario extends Component
 {
@@ -68,19 +70,41 @@ class ReporteInventario extends Component
 
     public function render()
     {
-        $inventariosActivos = Inventario::where('estado', 1)->count();
-        $localesEnProceso = Inventario::where('estado', 1)->distinct('codLocal')->count('codLocal');
-        $ultimaSincronizacion = InventarioConteo::max('created_at');
+        // 1. Identifica al usuario y sus locales permitidos
+        $userId = Auth::id();
+        $localesAsignados = DB::table('user_sucursal')
+                              ->where('user_id', $userId)
+                              ->pluck('sucursal_id');
 
+        // 2. Filtra los KPIs para que solo cuenten lo de su jurisdicción
+        $inventariosActivos = Inventario::where('estado', 1)
+                                        ->whereIn('codLocal', $localesAsignados)
+                                        ->count();
+                                        
+        $localesEnProceso = Inventario::where('estado', 1)
+                                      ->whereIn('codLocal', $localesAsignados)
+                                      ->distinct('codLocal')
+                                      ->count('codLocal');
+        
+        // 3. Última sincronización basada solo en sus inventarios permitidos
+        $inventariosIds = Inventario::whereIn('codLocal', $localesAsignados)->pluck('id');
+        $ultimaSincronizacion = InventarioConteo::whereIn('inventario_id', $inventariosIds)
+                                                ->max('created_at');
+
+        // 4. Filtra el selector de sucursales en la vista
         $sucursales = Inventario::select('codLocal', 'nombre_local')
+                                ->whereIn('codLocal', $localesAsignados)
                                 ->distinct()
                                 ->get();
         
         $inventarios = collect();
         if ($this->sucursalId) {
-            $inventarios = Inventario::where('codLocal', $this->sucursalId)
-                                     ->orderBy('id', 'desc')
-                                     ->get();
+            // Validación doble de seguridad: asegurar que la sucursal consultada le pertenece
+            if ($localesAsignados->contains($this->sucursalId)) {
+                $inventarios = Inventario::where('codLocal', $this->sucursalId)
+                                         ->orderBy('id', 'desc')
+                                         ->get();
+            }
         }
 
         $registros = collect();

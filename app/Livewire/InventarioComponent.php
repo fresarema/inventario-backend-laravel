@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Inventario;
 use App\Models\MaestroLocal;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class InventarioComponent extends Component
 {
@@ -20,8 +21,23 @@ class InventarioComponent extends Component
 
     public function render()
     {
-        $inventarios = Inventario::orderBy('id', 'desc')->get();
-        $locales = MaestroLocal::orderBy('nombre_local')->get();
+        // 1. Identificamos al usuario logueado
+        $userId = Auth::id();
+
+        // 2. Extraemos un arreglo con los códigos de los locales que tiene asignados
+        $localesAsignados = DB::table('user_sucursal')
+                              ->where('user_id', $userId)
+                              ->pluck('sucursal_id');
+
+        // 3. Filtramos la tabla de inventarios usando whereIn
+        $inventarios = Inventario::whereIn('codLocal', $localesAsignados)
+                                 ->orderBy('id', 'desc')
+                                 ->get();
+
+        // 4. Filtramos el select del modal para que solo pueda crear inventarios en sus locales
+        $locales = MaestroLocal::whereIn('codLocal', $localesAsignados)
+                               ->orderBy('nombre_local')
+                               ->get();
         
         return view('livewire.inventario-component', compact('inventarios', 'locales'));
     }
