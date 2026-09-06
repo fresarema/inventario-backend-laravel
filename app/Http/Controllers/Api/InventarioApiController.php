@@ -164,26 +164,43 @@ class InventarioApiController extends Controller
             // ------------------------------
 
             foreach ($conteoFisico as $item) {
-                // Consulta stock teórico a la base maestra
-                $productoMaestro = DB::connection('sqlsrv_maestra')
-                                     ->table('productos')
-                                     ->where('codigo', $item['codigo'])
-                                     ->first();
-                
-                $stockSistema = $productoMaestro ? $productoMaestro->stock_sistema : 0;
-                $descripcion = $productoMaestro ? $productoMaestro->descripcion : 'Producto sin descripción';
+                // 1. Busca si el producto ya fue escaneado en este inventario y en este metro exacto
+                $registroExistente = DB::table('inventario_conteo')
+                                       ->where('inventario_id', $inventarioId)
+                                       ->where('metro_id', $metroIdCorrecto)
+                                       ->where('codigo_producto', $item['codigo'])
+                                       ->first();
 
-                // Inserción en tabla corporativa con las variables cruzadas
-                DB::table('inventario_conteo')->insert([
-                    'inventario_id'        => $inventarioId,
-                    'user_id'              => $userId,
-                    'metro_id'             => $metroIdCorrecto, 
-                    'codigo_producto'      => $item['codigo'],
-                    'descripcion_producto' => $descripcion,
-                    'stock_sistema'        => $stockSistema,
-                    'conteo_fisico'        => $item['cantidad'],
-                    'created_at'           => now(), 
-                ]);
+                if ($registroExistente) {
+                    // 2. Si ya existe, actualiza sumando la cantidad nueva a la existente
+                    DB::table('inventario_conteo')
+                      ->where('id', $registroExistente->id)
+                      ->update([
+                          'conteo_fisico' => $registroExistente->conteo_fisico + $item['cantidad'],
+                          'updated_at'    => now(),
+                      ]);
+                } else {
+                    // 3. Si no existe, consulta la maestra e inserta como registro nuevo
+                    $productoMaestro = DB::connection('sqlsrv_maestra')
+                                         ->table('productos')
+                                         ->where('codigo', $item['codigo'])
+                                         ->first();
+                    
+                    $stockSistema = $productoMaestro ? $productoMaestro->stock_sistema : 0;
+                    $descripcion = $productoMaestro ? $productoMaestro->descripcion : 'Producto sin descripción';
+
+                    DB::table('inventario_conteo')->insert([
+                        'inventario_id'        => $inventarioId,
+                        'user_id'              => $userId,
+                        'metro_id'             => $metroIdCorrecto, 
+                        'codigo_producto'      => $item['codigo'],
+                        'descripcion_producto' => $descripcion,
+                        'stock_sistema'        => $stockSistema,
+                        'conteo_fisico'        => $item['cantidad'],
+                        'created_at'           => now(), 
+                        'updated_at'           => now(),
+                    ]);
+                }
             }
 
             DB::commit();
