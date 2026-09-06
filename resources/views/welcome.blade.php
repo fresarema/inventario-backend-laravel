@@ -1,16 +1,8 @@
 @extends('layouts.app')
-@section('title', __('Welcome'))
+@section('title', __('Administracion Unico'))
+@section('content_header')
+    <h1 class="m-0 text-dark">Resumen Gerencial</h1>
+@stop
 @section('content')
-<div class="container-fluid">
-<div class="row justify-content-center">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header"><h5><span class="text-center bi-house"></span> @yield('title')</h5></div>
-            <div class="card-body">
-                <livewire:reporte-inventario />
-            </div>
-        </div>
-    </div>
-</div>
-</div>
+    <livewire:kpi-dashboard />
 @endsection

@@ -2,9 +2,6 @@
     <!-- Encabezado y Botón Nuevo -->
     <div class="row mb-3">
         <div class="col-sm-6">
-            <h1 class="m-0 text-dark">Gestión de Usuarios</h1>
-        </div>
-        <div class="col-sm-6 text-right">
             <button wire:click="abrirModalNuevo" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nuevo Usuario
             </button>

@@ -1,0 +1,53 @@
+/* =========================================
+   1. COLOR VERDE CORPORATIVO SIDEBAR
+========================================= */
+.main-sidebar {
+    background-color: #007934 !important; 
+}
+
+/* =========================================
+   2. ZONA DEL LOGO (ESQUINA SUPERIOR)
+========================================= */
+.brand-link {
+    background-color: #007934 !important; 
+    text-align: center !important;
+    padding: 15px 0 !important;
+    border-bottom: 1px solid #005c27 !important;
+}
+
+/* Forzar tamaño y centrado del logo transparente */
+.brand-link .brand-image-xl {
+    max-height: 55px !important; /* Hace el logo más grande */
+    width: auto !important;
+    margin: 0 auto !important;
+    display: block !important;
+    float: none !important;
+}
+
+/* =========================================
+   3. TEXTO DEL MENÚ
+========================================= */
+.nav-sidebar .nav-item > .nav-link {
+    color: #ffffff !important;
+}
+
+/* Color al pasar el mouse por las opciones */
+.nav-sidebar .nav-item > .nav-link:hover {
+    background-color: #005c27 !important; 
+    color: #ffffff !important;
+}
+
+/* =========================================
+   4. FONDO DEL LOGIN
+========================================= */
+.login-page {
+    /* Verde oscuro como base */
+    background-color: #004d22 !important; 
+    /* Degradado radial para iluminar sutilmente el centro donde va el cuadro blanco */
+    background-image: radial-gradient(circle, #007934 0%, #003314 100%) !important;
+}
+
+/* Ocultar el enlace de "Registrar nuevo usuario" (opcional, por seguridad) */
+.login-card-body .mb-0 {
+    display: none;
+}

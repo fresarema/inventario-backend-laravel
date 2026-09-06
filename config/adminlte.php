@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 3',
+    'title' => 'Inventarios Único',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -63,12 +63,12 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
-    'logo_img_xl' => null,
+    'logo' => ' ', 
+    'logo_img' => 'img/Unico2.png', 
+    'logo_img_class' => 'brand-image-xl elevation-0',
+    'logo_img_xl' => null, 
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_alt' => 'Logo Supermercado',
 
     /*
     |--------------------------------------------------------------------------
@@ -83,14 +83,15 @@ return [
     |
     */
 
+
     'auth_logo' => [
-        'enabled' => false,
+        'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => 'img/Unico2.png',
             'alt' => 'Auth Logo',
             'class' => '',
-            'width' => 50,
-            'height' => 50,
+            'width' => 200,
+            'height' => 80,
         ],
     ],
 
@@ -171,12 +172,12 @@ return [
     |
     */
 
-    'classes_auth_card' => 'card-outline card-primary',
+    'classes_auth_card' => 'card-outline card-success', 
     'classes_auth_header' => '',
     'classes_auth_body' => '',
     'classes_auth_footer' => '',
     'classes_auth_icon' => '',
-    'classes_auth_btn' => 'btn-flat btn-primary',
+    'classes_auth_btn' => 'btn-flat btn-success', 
 
     /*
     |--------------------------------------------------------------------------
@@ -260,8 +261,8 @@ return [
     'dashboard_url' => 'home',
     'logout_url' => 'logout',
     'login_url' => 'login',
-    'register_url' => 'register',
-    'password_reset_url' => 'password/reset',
+    'register_url' => null,
+    'password_reset_url' => null,
     'password_email_url' => 'password/email',
     'profile_url' => false,
     'disable_darkmode_routes' => false,
@@ -314,6 +315,7 @@ return [
             'icon' => 'fas fa-fw fa-users',
             'can'  => 'is_superadmin',
         ],
+        
         [
             'text' => 'Gestión de Inventarios',
             'url'  => 'inventarios',
@@ -326,6 +328,11 @@ return [
         ],
 
         ['header' => 'ANÁLISIS'],
+        [
+            'text'  => 'Monitor en Tiempo Real',
+            'route' => 'monitoreo.index',
+            'icon'  => 'fas fa-fw fa-satellite-dish', 
+        ],
         [
             'text' => 'Reportes',
             'url'  => 'reportes',
@@ -438,6 +445,16 @@ return [
                 ],
             ],
         ],
+        'EstiloCorporativo' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/custom.css',
+                ],
+            ],
+        ],
     ],
 
     /*
@@ -486,4 +503,7 @@ return [
     */
 
     'livewire' => true,
+
+
+    'custom_css' => 'css/custom.css',
 ];

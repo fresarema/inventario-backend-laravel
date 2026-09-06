@@ -2,6 +2,10 @@
 
 @section('title', 'Gestión de Usuarios')
 
+@section('content_header')
+    <h1>Gestión de Usuarios</h1>
+@stop
+
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 @stop

@@ -76,22 +76,7 @@ class ReporteInventario extends Component
                               ->where('user_id', $userId)
                               ->pluck('sucursal_id');
 
-        // 2. Filtra los KPIs para que solo cuenten lo de su jurisdicción
-        $inventariosActivos = Inventario::where('estado', 1)
-                                        ->whereIn('codLocal', $localesAsignados)
-                                        ->count();
-                                        
-        $localesEnProceso = Inventario::where('estado', 1)
-                                      ->whereIn('codLocal', $localesAsignados)
-                                      ->distinct('codLocal')
-                                      ->count('codLocal');
-        
-        // 3. Última sincronización basada solo en sus inventarios permitidos
-        $inventariosIds = Inventario::whereIn('codLocal', $localesAsignados)->pluck('id');
-        $ultimaSincronizacion = InventarioConteo::whereIn('inventario_id', $inventariosIds)
-                                                ->max('created_at');
-
-        // 4. Filtra el selector de sucursales en la vista
+        // 2. Filtra el selector de sucursales en la vista
         $sucursales = Inventario::select('codLocal', 'nombre_local')
                                 ->whereIn('codLocal', $localesAsignados)
                                 ->distinct()
@@ -99,7 +84,7 @@ class ReporteInventario extends Component
         
         $inventarios = collect();
         if ($this->sucursalId) {
-            // Validación doble de seguridad: asegurar que la sucursal consultada le pertenece
+            // Validación doble de seguridad
             if ($localesAsignados->contains($this->sucursalId)) {
                 $inventarios = Inventario::where('codLocal', $this->sucursalId)
                                          ->orderBy('id', 'desc')
@@ -119,13 +104,11 @@ class ReporteInventario extends Component
                 ->get();
         }
 
+        // 3. Retornamos solo las variables necesarias
         return view('livewire.reporte-inventario', compact(
             'sucursales', 
             'inventarios', 
-            'registros',
-            'inventariosActivos',
-            'localesEnProceso',
-            'ultimaSincronizacion'
+            'registros'
         ));
     }
 
