@@ -47,8 +47,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/usuarios/{id}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
         Route::put('/usuarios/{id}', [UsuarioController::class, 'update'])->name('usuarios.update');
         Route::delete('/usuarios/{id}', [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
-        Route::get('/monitoreo', function () {return view('monitoreo.index'); })->name('monitoreo.index');
+        
     });
+
+    Route::get('/monitoreo', function () {return view('monitoreo.index'); })->name('monitoreo.index');
 
     // Rutas del Módulo de Inventarios
     Route::get('/inventarios', [InventarioController::class, 'index'])->name('inventarios.index');
