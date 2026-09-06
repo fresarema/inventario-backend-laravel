@@ -75,53 +75,76 @@
             font-size: 10px;
             margin-top: 5px;
         }
+        /* Regla para forzar el salto de página en DOMPDF */
+        .page-break {
+            page-break-after: always;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>Planilla Para SATO de Inventario General</h2>
-    </div>
+    @php
+        $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+        
+        // 1. Agrupamos todos los registros por su número de metro
+        $gruposPorMetro = $registros->groupBy('nombre_metro');
+    @endphp
 
-    <div class="info-box">
-        <table>
-            <tr>
-                <td>LOCAL: {{ $inventario->nombre_local ?? 'Todos' }}</td>
-                <td>METRO: <span style="background-color: #ffe066; padding: 2px 5px; border-radius: 3px;">{{ $filtroMetro ?: 'Todos' }}</span></td>
-                <td>EMISIÓN: {{ date('d/m/Y H:i') }}</td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="grid-container">
+    @foreach($gruposPorMetro as $nombreMetro => $registrosDelMetro)
         @php
-            $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+            // 2. Dividimos los registros de este metro en bloques exactos de 12
+            $paginas = $registrosDelMetro->chunk(12);
+            $totalPaginas = $paginas->count();
         @endphp
 
-        @foreach($registros as $registro)
-            @php
-                // Se extrae el código del producto para generar el código de barras
-                $codigoProducto = $registro->codigo_producto ?? $registro->producto_codigo;
-                // Genera el string en Base64 usando formato CODE_128
-                $barcodeBase64 = base64_encode($generator->getBarcode($codigoProducto, $generator::TYPE_CODE_128));
-            @endphp
+        @foreach($paginas as $index => $paginaRegistros)
             
-            <div class="etiqueta">
-                <div class="etiqueta-desc">
-                    {{ Str::limit($registro->descripcion_producto ?? 'Producto sin descripción', 55) }}
+            <!-- Contenedor de la página. Agrega el salto de hoja excepto en la última iteración general -->
+            <div class="{{ !$loop->parent->last || !$loop->last ? 'page-break' : '' }}">
+                
+                <div class="header">
+                    <h2>Planilla Para SATO de Inventario General</h2>
                 </div>
-                <div class="etiqueta-codigo">
-                    Código: {{ $codigoProducto }}
+
+                <div class="info-box">
+                    <table>
+                        <tr>
+                            <td>LOCAL: {{ $inventario->nombre_local ?? 'Todos' }}</td>
+                            <td>METRO: <span style="background-color: #ffe066; padding: 2px 5px; border-radius: 3px;">{{ $nombreMetro ?: 'Sin asignar' }}</span></td>
+                            <!-- Paginación dinámica por metro -->
+                            <td>PÁGINA: {{ $index + 1 }} de {{ $totalPaginas }}</td>
+                            <td>EMISIÓN: {{ date('d/m/Y H:i') }}</td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="barcode-img">
-                    <img src="data:image/png;base64,{{ $barcodeBase64 }}" alt="barcode">
+
+                <div class="grid-container">
+                    @foreach($paginaRegistros as $registro)
+                        @php
+                            $codigoProducto = $registro->codigo_producto ?? $registro->producto_codigo;
+                            $barcodeBase64 = base64_encode($generator->getBarcode($codigoProducto, $generator::TYPE_CODE_128));
+                        @endphp
+                        
+                        <div class="etiqueta">
+                            <div class="etiqueta-desc">
+                                {{ Str::limit($registro->descripcion_producto ?? 'Producto sin descripción', 55) }}
+                            </div>
+                            <div class="etiqueta-codigo">
+                                Código: {{ $codigoProducto }}
+                            </div>
+                            <div class="barcode-img">
+                                <img src="data:image/png;base64,{{ $barcodeBase64 }}" alt="barcode">
+                            </div>
+                            <div class="etiqueta-cant">
+                                Cantidad: {{ $registro->conteo_fisico ?? 0 }}
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-                <div class="etiqueta-cant">
-                    Cantidad: {{ $registro->conteo_fisico ?? 0 }}
-                </div>
+                
             </div>
         @endforeach
-    </div>
+    @endforeach
 
 </body>
 </html>
