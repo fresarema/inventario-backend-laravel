@@ -30,7 +30,7 @@ class KpiDashboard extends Component
         
         $inventariosIds = Inventario::whereIn('codLocal', $localesAsignados)->pluck('id');
         $ultimaSincronizacion = InventarioConteo::whereIn('inventario_id', $inventariosIds)
-                                                ->max('created_at');
+                                                ->max('updated_at');
 
         return view('livewire.kpi-dashboard', compact(
             'inventariosActivos',

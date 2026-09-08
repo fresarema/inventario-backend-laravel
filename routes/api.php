@@ -8,6 +8,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Ruta para hacer ping
+Route::get('/ping', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'pong'
+    ], 200);
+});
+
 // Puerta de entrada pública
 Route::post('/login', [InventarioApiController::class, 'login']);
 

@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.15s>
     <!-- Tarjeta de Filtros -->
     <div class="card card-primary card-outline">
         <div class="card-header">

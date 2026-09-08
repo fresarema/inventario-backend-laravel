@@ -1,4 +1,4 @@
-<div class="row">
+<div wire:poll.15s class="row">
     <!-- KPI 1: Inventarios Activos -->
     <div class="col-lg-4 col-6">
         <div class="small-box bg-info">

@@ -101,6 +101,7 @@ class ReporteInventario extends Component
                 ->when($this->metro, function($query) {
                     $query->where('metros.numeroMetro', $this->metro);
                 })
+                ->orderBy('updated_at', 'desc')
                 ->get();
         }
 
