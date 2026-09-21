@@ -38,15 +38,15 @@
             width: 100%;
         }
         .etiqueta {
-            width: 23%; /* 4 columnas */
+            width: 20%; 
+            margin: 0.5% 1%; 
             display: inline-block;
             border: 1px solid #ccc;
             border-radius: 8px;
             padding: 8px;
-            margin: 0.5%;
             box-sizing: border-box;
             vertical-align: top;
-            height: 120px;
+            height: 160px; 
         }
         .etiqueta-desc {
             font-size: 9px;
