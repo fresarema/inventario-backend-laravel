@@ -228,4 +228,28 @@ class InventarioApiController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+
+    // 5. DESCARGAR METROS DE LA SUCURSAL
+    public function getMetrosLocal(Request $request)
+    {
+        $request->validate([
+            'codLocal' => 'required|string'
+        ]);
+
+        try {
+            // Trae solo los metros que pertenecen a la sucursal y están abiertos (estado 1)
+            $metros = DB::table('metros')
+                        ->where('local_id', $request->codLocal)
+                        ->where('estado', 1)
+                        ->select('numeroMetro')
+                        ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $metros
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

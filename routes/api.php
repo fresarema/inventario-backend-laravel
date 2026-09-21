@@ -25,4 +25,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/productos', [InventarioApiController::class, 'getProductos']);
     Route::post('/validar-metro', [InventarioApiController::class, 'validarMetro']);
     Route::post('/sincronizar', [InventarioApiController::class, 'sincronizar']);
+    Route::post('/metros-local', [InventarioApiController::class, 'getMetrosLocal']);
 });
