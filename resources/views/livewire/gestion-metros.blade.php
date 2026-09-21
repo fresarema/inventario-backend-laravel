@@ -86,6 +86,7 @@
                                 <th style="width: 10px">ID</th>
                                 <th>Sucursal</th>
                                 <th>Metro</th>
+                                <th>Observación</th>
                                 <th class="text-center">Estado Actual</th>
                                 <th class="text-center">Acción</th>
                             </tr>
@@ -96,6 +97,15 @@
                                     <td>{{ $metro->id }}</td>
                                     <td>{{ $metro->nombre_local }}</td>
                                     <td><span class="font-weight-bold text-dark">{{ $metro->numeroMetro }}</span></td>
+                                    <td>
+                                        @if($metro->observacion)
+                                            <span title="{{ $metro->observacion }}" style="cursor: help; border-bottom: 1px dotted #888;">
+                                                {{ \Illuminate\Support\Str::limit($metro->observacion, 30) }}
+                                            </span>
+                                        @else
+                                            <span style="color: #999; font-style: italic; font-size: 0.9em;">Sin novedad</span>
+                                        @endif
+                                    </td>
                                     <td class="text-center">
                                         @if ($metro->estado == 1)
                                             <span class="badge badge-success px-2 py-1">Abierto</span>

@@ -111,6 +111,7 @@ class InventarioApiController extends Controller
         $request->validate([
             'inventario_id' => 'required|integer',
             'metro' => 'required|string',
+            'observacion' => 'nullable|string',
             'conteos' => 'required|array',
             'conteos.*.codigo' => 'required|string',
             'conteos.*.cantidad' => 'required|numeric',
@@ -161,10 +162,25 @@ class InventarioApiController extends Controller
             
             // 5. Captura el ID real para la llave foránea
             $metroIdCorrecto = $metroRecord->id;
-            // ------------------------------
+            
+            // 6. Si el operario envió una observación, se actualiza el metro
+            if ($request->filled('observacion')) {
+                DB::table('metros')
+                  ->where('id', $metroIdCorrecto)
+                  ->update(['observacion' => $request->observacion]);
+            }
+            // ------------------------
+            // OPTIMIZACIÓN: Extrae todos los códigos y hacemos UNA sola consulta a la maestra
+            $codigosEscaneados = array_column($conteoFisico, 'codigo');
+            
+            $productosMaestros = DB::connection('sqlsrv_maestra')
+                                   ->table('productos')
+                                   ->whereIn('codigo', $codigosEscaneados)
+                                   ->get()
+                                   ->keyBy('codigo');
 
             foreach ($conteoFisico as $item) {
-                // 1. Busca si el producto ya fue escaneado en este inventario y en este metro exacto
+                // 1. Busca si el producto ya fue escaneado en este inventario y metro
                 $registroExistente = DB::table('inventario_conteo')
                                        ->where('inventario_id', $inventarioId)
                                        ->where('metro_id', $metroIdCorrecto)
@@ -172,7 +188,7 @@ class InventarioApiController extends Controller
                                        ->first();
 
                 if ($registroExistente) {
-                    // 2. Si ya existe, actualiza sumando la cantidad nueva a la existente
+                    // 2. Si ya existe, actualiza sumando la cantidad
                     DB::table('inventario_conteo')
                       ->where('id', $registroExistente->id)
                       ->update([
@@ -180,11 +196,8 @@ class InventarioApiController extends Controller
                           'updated_at'    => now(),
                       ]);
                 } else {
-                    // 3. Si no existe, consulta la maestra e inserta como registro nuevo
-                    $productoMaestro = DB::connection('sqlsrv_maestra')
-                                         ->table('productos')
-                                         ->where('codigo', $item['codigo'])
-                                         ->first();
+                    // 3. Rescata los datos desde la colección en memoria 
+                    $productoMaestro = $productosMaestros->get($item['codigo']);
                     
                     $stockSistema = $productoMaestro ? $productoMaestro->stock_sistema : 0;
                     $descripcion = $productoMaestro ? $productoMaestro->descripcion : 'Producto sin descripción';
