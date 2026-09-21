@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\User;
 use App\Models\MaestroLocal;
 use Illuminate\Support\Facades\Hash;
+use App\Rules\RutValido;
 
 class UsuariosComponent extends Component
 {
@@ -64,7 +65,7 @@ class UsuariosComponent extends Component
     {
         $reglas = [
             'name' => 'required|string|max:255',
-            'rut_usuario' => 'required|string|max:12',
+            'rut_usuario' => ['required', 'string', 'max:12', new RutValido()], 
             'email' => 'required|email|unique:user,email,' . $this->usuario_id,
             'tipo' => 'required'
         ];
@@ -78,9 +79,15 @@ class UsuariosComponent extends Component
 
         // 2. Prepara el arreglo con los datos obligatorios
         $datosGuardar = [
-            'name' => $this->name,
-            'rut_usuario' => $this->rut_usuario,
-            'email' => $this->email,
+            // mb_strtoupper con UTF-8 asegura que los tildes (á, é) y la 'Ñ' se conviertan correctamente
+            'name' => mb_strtoupper(trim($this->name), 'UTF-8'), 
+            
+            // Fuerza el RUT a mayúsculas por si digitan una 'k' minúscula
+            'rut_usuario' => strtoupper(trim($this->rut_usuario)),
+            
+            // El correo siempre en minúsculas estrictas para evitar problemas de login a futuro
+            'email' => strtolower(trim($this->email)),
+            
             'tipo' => $this->tipo,
         ];
 

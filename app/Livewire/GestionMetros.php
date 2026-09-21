@@ -54,6 +54,12 @@ class GestionMetros extends Component
 
     public function guardar()
     {
+        // 1. Sanitización de espacios ocultos previos a la validación
+        $this->metroDesde = trim($this->metroDesde);
+        if ($this->metroHasta) {
+            $this->metroHasta = trim($this->metroHasta);
+        }
+
         $this->validate([
             'local_id' => 'required',
             'metroDesde' => 'required|integer|min:1',
@@ -69,13 +75,16 @@ class GestionMetros extends Component
         $omitidos = 0;
 
         for ($i = $this->metroDesde; $i <= $hasta; $i++) {
+            // Se asegura de guardar el número limpio como string en la base de datos
+            $numeroLimpio = (string)$i;
+
             $existe = Metro::where('local_id', $this->local_id)
-                           ->where('numeroMetro', (string)$i)
+                           ->where('numeroMetro', $numeroLimpio)
                            ->first();
             
             if(!$existe) {
                 Metro::create([
-                    'numeroMetro' => (string)$i,
+                    'numeroMetro' => $numeroLimpio,
                     'estado' => $this->estado,
                     'local_id' => $this->local_id,
                 ]);
