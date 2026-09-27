@@ -109,10 +109,24 @@
                 <div class="info-box">
                     <table>
                         <tr>
-                            <td>LOCAL: {{ $inventario->nombre_local ?? 'Todos' }}</td>
+                            <td>SUCURSAL: {{ $inventario->nombre_local ?? 'Todos' }}</td>
+                            
+                            @php
+                                $operario = $registrosDelMetro->first()->nombre_operario ?? 'No asignado';
+                            @endphp
+                            <td>OPERARIO: {{ $operario }}</td>
+
                             <td>METRO: <span style="background-color: #ffe066; padding: 2px 5px; border-radius: 3px;">{{ $nombreMetro ?: 'Sin asignar' }}</span></td>
-                            <!-- Paginación dinámica por metro -->
+                            
                             <td>PÁGINA: {{ $index + 1 }} de {{ $totalPaginas }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                @php
+                                    $nota = $registrosDelMetro->first()->observacion_metro ?? 'Sin observaciones';
+                                @endphp
+                                <span style="font-weight: normal;">Observación: {{ $nota }}</span>
+                            </td>
                             <td>EMISIÓN: {{ date('d/m/Y H:i') }}</td>
                         </tr>
                     </table>

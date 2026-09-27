@@ -121,6 +121,7 @@ class InventarioApiController extends Controller
         $userId = $request->user()->id; 
         $conteoFisico = $request->conteos;
         $numeroMetroEnviado = $request->metro;
+        \Log::info('Payload recibido en Laravel:', $request->all());
 
         try {
             DB::beginTransaction();

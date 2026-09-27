@@ -96,12 +96,18 @@ class ReporteInventario extends Component
         
         if ($this->inventarioId) {
             $registros = InventarioConteo::leftJoin('metros', 'inventario_conteo.metro_id', '=', 'metros.id')
-                ->select('inventario_conteo.*', 'metros.numeroMetro as nombre_metro')
+                ->leftJoin('user', 'inventario_conteo.user_id', '=', 'user.id') 
+                ->select(
+                    'inventario_conteo.*', 
+                    'metros.numeroMetro as nombre_metro',
+                    'metros.observacion as observacion_metro', 
+                    'user.name as nombre_operario'            
+                )
                 ->where('inventario_conteo.inventario_id', $this->inventarioId)
                 ->when($this->metro, function($query) {
                     $query->where('metros.numeroMetro', $this->metro);
                 })
-                ->orderBy('updated_at', 'desc')
+                ->orderBy('updated_at', 'desc') 
                 ->get();
         }
 
@@ -134,9 +140,15 @@ class ReporteInventario extends Component
             return; 
         }
 
-        // 1. Trae los mismos registros filtrados
+        // 1. Trae los registros filtrados con un join de usuarios aplicado
         $registros = InventarioConteo::leftJoin('metros', 'inventario_conteo.metro_id', '=', 'metros.id')
-            ->select('inventario_conteo.*', 'metros.numeroMetro as nombre_metro')
+            ->leftJoin('user', 'inventario_conteo.user_id', '=', 'user.id') 
+            ->select(
+                'inventario_conteo.*', 
+                'metros.numeroMetro as nombre_metro',
+                'metros.observacion as observacion_metro',
+                'user.name as nombre_operario'
+            )
             ->where('inventario_conteo.inventario_id', $this->inventarioId)
             ->when($this->metro, function($query) {
                 $query->where('metros.numeroMetro', $this->metro);
