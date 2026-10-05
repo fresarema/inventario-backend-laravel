@@ -111,6 +111,7 @@ class InventarioApiController extends Controller
         $request->validate([
             'inventario_id' => 'required|integer',
             'metro' => 'required|string',
+            'nivel' => 'required|string',
             'observacion' => 'nullable|string',
             'conteos' => 'required|array',
             'conteos.*.codigo' => 'required|string',
@@ -121,6 +122,7 @@ class InventarioApiController extends Controller
         $userId = $request->user()->id; 
         $conteoFisico = $request->conteos;
         $numeroMetroEnviado = $request->metro;
+        $nivelEnviado = $request->nivel;
         \Log::info('Payload recibido en Laravel:', $request->all());
 
         try {
@@ -143,6 +145,7 @@ class InventarioApiController extends Controller
             $metroRecord = DB::table('metros')
                              ->where('numeroMetro', $numeroMetroEnviado)
                              ->where('local_id', $idSucursal)
+                             ->where('nivel', $nivelEnviado)
                              ->first();
 
             // 3. Si el metro no existe en la BD para esa sucursal, devuelve un error
@@ -242,7 +245,7 @@ class InventarioApiController extends Controller
             $metros = DB::table('metros')
                         ->where('local_id', $request->codLocal)
                         ->where('estado', 1)
-                        ->select('numeroMetro')
+                        ->select('numeroMetro','nivel')
                         ->get();
 
             return response()->json([

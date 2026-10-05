@@ -116,7 +116,10 @@
                             @endphp
                             <td>OPERARIO: {{ $operario }}</td>
 
-                            <td>METRO: <span style="background-color: #ffe066; padding: 2px 5px; border-radius: 3px;">{{ $nombreMetro ?: 'Sin asignar' }}</span></td>
+                            @php
+                                $nivelMetro = $registrosDelMetro->first()->nivel_metro ?? '';
+                            @endphp
+                            <td>METRO: <span style="background-color: #ffe066; padding: 2px 5px; border-radius: 3px;">{{ $nombreMetro ?: 'Sin asignar' }} / {{ $nivelMetro }}</span></td>
                             
                             <td>PÁGINA: {{ $index + 1 }} de {{ $totalPaginas }}</td>
                         </tr>

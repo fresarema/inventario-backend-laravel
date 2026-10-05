@@ -100,7 +100,8 @@ class ReporteInventario extends Component
                 ->select(
                     'inventario_conteo.*', 
                     'metros.numeroMetro as nombre_metro',
-                    'metros.observacion as observacion_metro', 
+                    'metros.observacion as observacion_metro',
+                    'metros.nivel as nivel_metro', 
                     'user.name as nombre_operario'            
                 )
                 ->where('inventario_conteo.inventario_id', $this->inventarioId)
@@ -147,6 +148,7 @@ class ReporteInventario extends Component
                 'inventario_conteo.*', 
                 'metros.numeroMetro as nombre_metro',
                 'metros.observacion as observacion_metro',
+                'metros.nivel as nivel_metro',
                 'user.name as nombre_operario'
             )
             ->where('inventario_conteo.inventario_id', $this->inventarioId)

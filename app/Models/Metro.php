@@ -14,6 +14,7 @@ class Metro extends Model
     protected $fillable = [
         'numeroMetro',
         'estado',
-        'local_id'
+        'local_id',
+        'nivel'
     ];
 }

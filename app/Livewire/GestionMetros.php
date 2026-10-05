@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Auth;
 class GestionMetros extends Component
 {
     public $metros;
-    public $locales; 
+    public $locales;
+    public $nivel ='Superficie'; 
     
     // Cambia numeroMetro por un rango
     public $metroDesde;
@@ -80,12 +81,14 @@ class GestionMetros extends Component
 
             $existe = Metro::where('local_id', $this->local_id)
                            ->where('numeroMetro', $numeroLimpio)
+                           ->where('nivel', $this->nivel)
                            ->first();
             
             if(!$existe) {
                 Metro::create([
                     'numeroMetro' => $numeroLimpio,
                     'estado' => $this->estado,
+                    'nivel' => $this->nivel,
                     'local_id' => $this->local_id,
                 ]);
                 $creados++;

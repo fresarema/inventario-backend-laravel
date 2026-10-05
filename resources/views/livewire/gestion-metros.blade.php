@@ -25,6 +25,18 @@
                             @enderror
                         </div>
 
+                        <div class="form-group">
+                            <label for="nivel">Sector / Subclasificación</label>
+                            <input type="text" 
+                                   id="nivel" 
+                                   wire:model.defer="nivel" 
+                                   class="form-control @error('nivel') is-invalid @enderror"
+                                   placeholder="Ej: Superficie, Productos Sensibles, -1...">
+                            @error('nivel') 
+                                <span class="invalid-feedback">{{ $message }}</span> 
+                            @enderror
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6 form-group">
                                 <label for="metroDesde">Desde el Metro</label>
@@ -86,6 +98,7 @@
                                 <th style="width: 10px">ID</th>
                                 <th>Sucursal</th>
                                 <th>Metro</th>
+                                <th>Nivel</th>
                                 <th>Observación</th>
                                 <th class="text-center">Estado Actual</th>
                                 <th class="text-center">Acción</th>
@@ -97,6 +110,7 @@
                                     <td>{{ $metro->id }}</td>
                                     <td>{{ $metro->nombre_local }}</td>
                                     <td><span class="font-weight-bold text-dark">{{ $metro->numeroMetro }}</span></td>
+                                    <td><span class="badge badge-secondary">{{ $metro->nivel }}</span></td>
                                     <td>
                                         @if($metro->observacion)
                                             <span title="{{ $metro->observacion }}" style="cursor: help; border-bottom: 1px dotted #888;">
