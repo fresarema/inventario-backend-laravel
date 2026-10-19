@@ -20,6 +20,8 @@ class GestionMetros extends Component
     public $estado = 1;
     public $local_id = ''; 
 
+    public $selectedMetros = [];
+
     public function mount()
     {
         // 1. Identifica al usuario y sus locales permitidos
@@ -128,6 +130,28 @@ class GestionMetros extends Component
             $this->cargarMetros();
             $this->dispatch('alerta-exito', mensaje: 'Pasillo eliminado permanentemente.');
         }
+    }
+
+    public function cerrarSeleccionados()
+    {
+        if (empty($this->selectedMetros)) return;
+
+        Metro::whereIn('id', $this->selectedMetros)->update(['estado' => 0]); // 0 = Cerrado
+        $this->selectedMetros = []; // Limpiamos la selección
+        $this->cargarMetros(); // Recargamos la tabla
+        
+        $this->dispatch('alerta-exito', mensaje: 'Pasillos seleccionados cerrados correctamente.');
+    }
+
+    public function eliminarSeleccionados()
+    {
+        if (empty($this->selectedMetros)) return;
+
+        Metro::whereIn('id', $this->selectedMetros)->delete();
+        $this->selectedMetros = []; // Limpiamos la selección
+        $this->cargarMetros(); // Recargamos la tabla
+        
+        $this->dispatch('alerta-exito', mensaje: 'Pasillos eliminados de forma permanente.');
     }
 
     public function render()

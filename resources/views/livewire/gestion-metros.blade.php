@@ -92,9 +92,25 @@
                 </div>
                 
                 <div class="card-body table-responsive p-0" style="max-height: 500px;">
+                    @if(count($selectedMetros) > 0)
+                    <div class="bg-light p-2 border-bottom d-flex justify-content-between align-items-center position-sticky" style="top: 0; z-index: 10;">
+                        <span class="font-weight-bold text-primary ml-2">
+                            <i class="fas fa-check-square"></i> {{ count($selectedMetros) }} pasillos seleccionados
+                        </span>
+                        <div>
+                            <button wire:click="cerrarSeleccionados" class="btn btn-sm btn-warning mr-2">
+                                <i class="fas fa-lock mr-1"></i> Cerrar Seleccionados
+                            </button>
+                            <button onclick="confirmarEliminacionMasiva()" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash mr-1"></i> Eliminar Seleccionados
+                            </button>
+                        </div>
+                    </div>
+                    @endif
                     <table class="table table-hover table-head-fixed text-nowrap">
                         <thead>
                             <tr>
+                                <th style="width: 40px"></th>
                                 <th style="width: 10px">ID</th>
                                 <th>Sucursal</th>
                                 <th>Metro</th>
@@ -107,6 +123,9 @@
                         <tbody>
                             @forelse ($metros as $metro)
                                 <tr>
+                                    <td class="text-center align-middle">
+                                        <input type="checkbox" wire:model.live="selectedMetros" value="{{ $metro->id }}" style="transform: scale(1.3); cursor: pointer;">
+                                    </td>
                                     <td>{{ $metro->id }}</td>
                                     <td>{{ $metro->nombre_local }}</td>
                                     <td><span class="font-weight-bold text-dark">{{ $metro->numeroMetro }}</span></td>
@@ -178,6 +197,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     @this.call('eliminar', id);
+                }
+            });
+        }
+
+        // Función para confirmar la eliminación masiva
+        function confirmarEliminacionMasiva() {
+            Swal.fire({
+                title: '¿Eliminar pasillos seleccionados?',
+                text: "Esta acción borrará múltiples registros de la base de datos de forma permanente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar todos',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('eliminarSeleccionados');
                 }
             });
         }
