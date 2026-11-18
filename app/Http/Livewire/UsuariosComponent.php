@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Http\Livewire; 
 
 use Livewire\Component;
 use App\Models\User;
@@ -42,7 +42,7 @@ class UsuariosComponent extends Component
     public function abrirModalNuevo()
     {
         $this->limpiarCampos();
-        $this->dispatch('abrir-modal');
+        $this->dispatchBrowserEvent('abrir-modal');
     }
 
     public function editar($id)
@@ -58,7 +58,7 @@ class UsuariosComponent extends Component
         $this->sucursalesSeleccionadas = $usuario->sucursales->pluck('codLocal')->map(fn($id) => (string)$id)->toArray();
         
         $this->modalTitle = 'Editar Usuario';
-        $this->dispatch('abrir-modal');
+        $this->dispatchBrowserEvent('abrir-modal');
     }
 
     public function guardar()
@@ -105,8 +105,8 @@ class UsuariosComponent extends Component
         // Sincroniza las sucursales asignadas
         $usuario->sucursales()->sync($this->sucursalesSeleccionadas);
 
-        $this->dispatch('cerrar-modal');
-        $this->dispatch('alerta-exito', mensaje: 'Usuario guardado correctamente.');
+        $this->dispatchBrowserEvent('cerrar-modal');
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Usuario guardado correctamente.']);
     }
 
     public function eliminar($id)
@@ -115,6 +115,6 @@ class UsuariosComponent extends Component
         $usuario->sucursales()->detach();
         $usuario->delete();
         
-        $this->dispatch('alerta-exito', mensaje: 'Usuario eliminado del sistema.');
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Usuario eliminado del sistema.']);
     }
 }

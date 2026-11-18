@@ -128,6 +128,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Escuchar eventos para abrir y cerrar el modal
     window.addEventListener('abrir-modal', event => {

@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Livewire;
-
+namespace App\Http\Livewire; 
 use Livewire\Component;
 use App\Models\Inventario;
 use App\Models\MaestroLocal;
@@ -12,7 +11,7 @@ class InventarioComponent extends Component
 {
     // Variables del formulario
     public $inventario_id;
-    public $titulo_inventario; // Corresponde al campo 'inventario' en la BD
+    public $titulo_inventario; 
     public $codLocal;
     public $fecha;
     public $observacion;
@@ -21,25 +20,27 @@ class InventarioComponent extends Component
 
     public function render()
     {
-        // 1. Identificamos al usuario logueado
+        // 1. Identifica al usuario logueado
         $userId = Auth::id();
 
-        // 2. Extraemos un arreglo con los códigos de los locales que tiene asignados
+        // 2. Extrae un arreglo con los códigos de los locales que tiene asignados
         $localesAsignados = DB::table('user_sucursal')
                               ->where('user_id', $userId)
                               ->pluck('sucursal_id');
 
-        // 3. Filtramos la tabla de inventarios usando whereIn
+        // 3. Filtra la tabla de inventarios usando whereIn
         $inventarios = Inventario::whereIn('codLocal', $localesAsignados)
                                  ->orderBy('id', 'desc')
                                  ->get();
 
-        // 4. Filtramos el select del modal para que solo pueda crear inventarios en sus locales
+        // 4. Filtra el select del modal para que solo pueda crear inventarios en sus locales
         $locales = MaestroLocal::whereIn('codLocal', $localesAsignados)
                                ->orderBy('nombre_local')
                                ->get();
         
-        return view('livewire.inventario-component', compact('inventarios', 'locales'));
+        return view('livewire.inventario-component', compact('inventarios', 'locales'))
+            ->extends('layouts.app')
+            ->section('content');
     }
 
     public function limpiarCampos()
@@ -47,7 +48,7 @@ class InventarioComponent extends Component
         $this->inventario_id = null;
         $this->titulo_inventario = '';
         $this->codLocal = '';
-        $this->fecha = date('Y-m-d'); // Fecha actual por defecto
+        $this->fecha = date('Y-m-d'); 
         $this->observacion = '';
         $this->modalTitle = 'Abrir Nuevo Inventario';
         $this->resetErrorBag();
@@ -56,7 +57,7 @@ class InventarioComponent extends Component
     public function abrirModalNuevo()
     {
         $this->limpiarCampos();
-        $this->dispatch('abrir-modal');
+        $this->dispatchBrowserEvent('abrir-modal');
     }
 
     public function editar($id)
@@ -71,7 +72,7 @@ class InventarioComponent extends Component
         $this->observacion = $inv->observacion;
         
         $this->modalTitle = 'Editar Inventario';
-        $this->dispatch('abrir-modal');
+        $this->dispatchBrowserEvent('abrir-modal');
     }
 
     public function guardar()
@@ -83,7 +84,6 @@ class InventarioComponent extends Component
             'observacion'       => 'nullable|string'
         ]);
 
-        // Extraer el nombre del local
         $localMaestro = MaestroLocal::where('codLocal', $this->codLocal)->first();
 
         Inventario::updateOrCreate(
@@ -95,16 +95,15 @@ class InventarioComponent extends Component
                 'fecha'        => $this->fecha,
                 'observacion'  => $this->observacion,
                 'user_id'      => Auth::id() ?? 1,
-                // Si es nuevo, estado 1. Si se está editando, mantiene el estado que tenía
                 'estado'       => $this->inventario_id ? Inventario::find($this->inventario_id)->estado : 1,
             ]
         );
 
-        $this->dispatch('cerrar-modal');
-        $this->dispatch('alerta-exito', mensaje: 'Proceso de inventario guardado correctamente.');
+        // Envío de eventos en Livewire 2 (usando arreglos para pasar datos)
+        $this->dispatchBrowserEvent('cerrar-modal');
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Proceso de inventario guardado correctamente.']);
     }
 
-    // Unifica el cierre y apertura en una sola función "Toggle"
     public function cambiarEstado($id, $nuevoEstado)
     {
         $inv = Inventario::findOrFail($id);
@@ -112,6 +111,6 @@ class InventarioComponent extends Component
         $inv->save();
 
         $mensaje = $nuevoEstado == 0 ? 'Inventario cerrado correctamente.' : 'Inventario reabierto correctamente.';
-        $this->dispatch('alerta-exito', mensaje: $mensaje);
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => $mensaje]);
     }
 }

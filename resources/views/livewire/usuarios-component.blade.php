@@ -122,7 +122,7 @@
                                 <button wire:click="editar({{ $usuario->id }})" class="btn btn-sm btn-info" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button wire:click="eliminar({{ $usuario->id }})" onclick="return confirm('¿Estás seguro de eliminar este usuario?') || event.stopImmediatePropagation()" class="btn btn-sm btn-danger" title="Eliminar">
+                                <button onclick="confirmarEliminacionUsuario({{ $usuario->id }})" class="btn btn-sm btn-danger" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -136,4 +136,44 @@
             </table>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Escuchar eventos para abrir y cerrar el modal
+        window.addEventListener('abrir-modal', event => {
+            $('#modalUsuario').modal('show');
+        });
+
+        window.addEventListener('cerrar-modal', event => {
+            $('#modalUsuario').modal('hide');
+        });
+
+        // Alertas de éxito generales
+        window.addEventListener('alerta-exito', event => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Operación Exitosa!',
+                text: event.detail.mensaje || event.detail[0].mensaje, 
+                timer: 2000,
+                showConfirmButton: false
+            });
+        });
+
+        // Alerta bonita para confirmar eliminación
+        function confirmarEliminacionUsuario(id) {
+            Swal.fire({
+                title: '¿Eliminar este usuario?',
+                text: "Se le quitará el acceso al sistema de forma permanente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('eliminar', id);
+                }
+            });
+        }
+    </script>
 </div>

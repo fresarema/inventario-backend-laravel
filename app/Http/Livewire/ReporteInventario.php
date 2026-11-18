@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Http\Livewire; 
 
 use Livewire\Component;
 use App\Models\Sucursal;
@@ -52,7 +52,7 @@ class ReporteInventario extends Component
             $registro->conteo_fisico = $this->nuevoConteo;
             $registro->save();
             
-            $this->dispatch('alerta-exito', mensaje: 'Conteo actualizado correctamente.');
+            $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Conteo actualizado correctamente.']);
         }
         
         $this->cancelarEdicion();
@@ -63,7 +63,7 @@ class ReporteInventario extends Component
         $registro = InventarioConteo::find($id);
         if ($registro) {
             $registro->delete();
-            $this->dispatch('alerta-exito', mensaje: 'Registro de escaneo eliminado de la base de datos.');
+            $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Registro de escaneo eliminado de la base de datos.']);
         }
     }
     // --- FIN LÓGICA DE EDICIÓN ---
@@ -137,7 +137,7 @@ class ReporteInventario extends Component
     {
         // Valida que haya un inventario seleccionado
         if (!$this->inventarioId) {
-            $this->dispatch('alerta-exito', mensaje: 'Debe seleccionar un inventario para exportar.');
+            $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Debe seleccionar un inventario para exportar.']);
             return; 
         }
 

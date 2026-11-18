@@ -130,8 +130,8 @@
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // No es necesario importar SweetAlert2 de nuevo si ya está en tu layout principal (AdminLTE)
         window.addEventListener('alerta-exito', event => {
             Swal.fire({
                 icon: 'success',

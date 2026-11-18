@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Http\Livewire;
 
 use Livewire\Component;
 use App\Models\Metro;
+use App\Models\MaestroLocal; 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,9 +12,8 @@ class GestionMetros extends Component
 {
     public $metros;
     public $locales;
-    public $nivel ='Superficie'; 
+    public $nivel = 'Superficie'; 
     
-    // Cambia numeroMetro por un rango
     public $metroDesde;
     public $metroHasta;
     
@@ -24,15 +24,13 @@ class GestionMetros extends Component
 
     public function mount()
     {
-        // 1. Identifica al usuario y sus locales permitidos
         $userId = Auth::id();
         $localesAsignados = DB::table('user_sucursal')
                               ->where('user_id', $userId)
                               ->pluck('sucursal_id');
 
-        // 2. Filtra el selector de sucursales para crear metros
-        $this->locales = DB::table('maestro_locales')
-                           ->whereIn('codLocal', $localesAsignados)
+
+        $this->locales = MaestroLocal::whereIn('codLocal', $localesAsignados)
                            ->orderBy('nombre_local')
                            ->get();
                            
@@ -41,7 +39,6 @@ class GestionMetros extends Component
 
     public function cargarMetros()
     {
-        // Repite la consulta de seguridad para blindar la tabla visual
         $userId = Auth::id();
         $localesAsignados = DB::table('user_sucursal')
                               ->where('user_id', $userId)
@@ -57,7 +54,6 @@ class GestionMetros extends Component
 
     public function guardar()
     {
-        // 1. Sanitización de espacios ocultos previos a la validación
         $this->metroDesde = trim($this->metroDesde);
         if ($this->metroHasta) {
             $this->metroHasta = trim($this->metroHasta);
@@ -66,19 +62,16 @@ class GestionMetros extends Component
         $this->validate([
             'local_id' => 'required',
             'metroDesde' => 'required|integer|min:1',
-            // El hasta es opcional, pero si se llena, debe ser mayor o igual al desde
             'metroHasta' => 'nullable|integer|gte:metroDesde',
             'estado' => 'required|boolean',
         ]);
 
-        // Si el usuario no llenó "Hasta", asumimos que solo quiere crear el "Desde"
         $hasta = $this->metroHasta ? $this->metroHasta : $this->metroDesde;
         
         $creados = 0;
         $omitidos = 0;
 
         for ($i = $this->metroDesde; $i <= $hasta; $i++) {
-            // Se asegura de guardar el número limpio como string en la base de datos
             $numeroLimpio = (string)$i;
 
             $existe = Metro::where('local_id', $this->local_id)
@@ -102,14 +95,12 @@ class GestionMetros extends Component
         $this->reset(['metroDesde', 'metroHasta']); 
         $this->cargarMetros();
         
-        // Prepara un mensaje detallado para el usuario
         $mensaje = "Se crearon {$creados} pasillos exitosamente.";
         if ($omitidos > 0) {
             $mensaje .= " Se omitieron {$omitidos} que ya existían en la sucursal.";
         }
         
-        // Dispara el evento al navegador
-        $this->dispatch('alerta-exito', mensaje: $mensaje);
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => $mensaje]);
     }
 
     public function cambiarEstado($id)
@@ -128,7 +119,7 @@ class GestionMetros extends Component
         if ($metro) {
             $metro->delete(); 
             $this->cargarMetros();
-            $this->dispatch('alerta-exito', mensaje: 'Pasillo eliminado permanentemente.');
+            $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Pasillo eliminado permanentemente.']);
         }
     }
 
@@ -136,11 +127,11 @@ class GestionMetros extends Component
     {
         if (empty($this->selectedMetros)) return;
 
-        Metro::whereIn('id', $this->selectedMetros)->update(['estado' => 0]); // 0 = Cerrado
-        $this->selectedMetros = []; // Limpiamos la selección
-        $this->cargarMetros(); // Recargamos la tabla
+        Metro::whereIn('id', $this->selectedMetros)->update(['estado' => 0]); 
+        $this->selectedMetros = []; 
+        $this->cargarMetros(); 
         
-        $this->dispatch('alerta-exito', mensaje: 'Pasillos seleccionados cerrados correctamente.');
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Pasillos seleccionados cerrados correctamente.']);
     }
 
     public function eliminarSeleccionados()
@@ -148,10 +139,10 @@ class GestionMetros extends Component
         if (empty($this->selectedMetros)) return;
 
         Metro::whereIn('id', $this->selectedMetros)->delete();
-        $this->selectedMetros = []; // Limpiamos la selección
-        $this->cargarMetros(); // Recargamos la tabla
+        $this->selectedMetros = []; 
+        $this->cargarMetros(); 
         
-        $this->dispatch('alerta-exito', mensaje: 'Pasillos eliminados de forma permanente.');
+        $this->dispatchBrowserEvent('alerta-exito', ['mensaje' => 'Pasillos eliminados de forma permanente.']);
     }
 
     public function render()
